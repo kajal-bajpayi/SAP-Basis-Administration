@@ -1,0 +1,170 @@
+# 🔧 ST22 — ABAP Dump Analysis
+
+> ***SAP Basis Administration — Interview Preparation Guide***
+
+---
+
+## 📌 What is ST22?
+
+**ST22** is a transaction code used to analyze ***ABAP runtime errors*** (commonly called **_short dumps_**).  
+Whenever an ABAP program **terminates abnormally**, SAP generates a short dump and logs it in <ins>ST22</ins>.
+
+> 💡 _Think of ST22 as the **crash report center** of your SAP system._
+
+---
+
+## 🎯 Purpose
+
+- Displays **_detailed information_** about program crashes
+- Shows the **error type**, the **_exact line of code_** that failed, the **user** who triggered it, the **timestamp**, and the **variable values** at the time of the dump
+- Acts as the ***first point of investigation*** for any ABAP runtime failure
+
+---
+
+## 🔴 Common Dump Types _(Frequently Asked in Interviews)_
+
+| Dump Type | Description | Severity |
+|---|---|---|
+| **`TIME_OUT`** | Program exceeded maximum runtime _(default: **600s** dialog, **3600s** background)_ | 🔴 _High_ |
+| **`TSV_TNEW_PAGE_ALLOC_FAILED`** | Program ran out of memory _(extended memory / heap)_ | 🔴 _High_ |
+| **`DBIF_RSQL_SQL_ERROR`** | Database-level **SQL error** occurred | 🔴 _High_ |
+| **`MESSAGE_TYPE_X`** | Program hit a _hard termination_ via `MESSAGE TYPE X` | 🟡 _Medium_ |
+| **`RABAX_STATE`** | Internal **_kernel-level_** error | 🔴 _High_ |
+| **`COMPUTE_INT_ZERODIVIDE`** | Division by **zero** in ABAP code | 🟡 _Medium_ |
+| **`CALL_FUNCTION_NOT_FOUND`** | Called function module **_does not exist_** | 🟡 _Medium_ |
+
+---
+
+## 📋 Information Provided by ST22
+
+| Field | Description |
+|---|---|
+| **Error Category** | Classification of the dump _(e.g., TIME_OUT, MEMORY, DB error)_ |
+| **ABAP Program** | _Name of the program_ that crashed |
+| **Source Code Line** | ***Exact line*** where the error occurred |
+| **Call Stack** | Complete **_execution path_** leading to the crash |
+| **User & Client** | The **SAP user** and **client number** who triggered it |
+| **System & Host** | _Application server_ and **host machine** details |
+| **Variable Values** | **_Snapshot_** of all variable values at the time of crash |
+| **Error Analysis** | SAP's built-in ***suggestion*** on how to fix the issue |
+
+---
+
+## ⏳ Dump Retention Period
+
+| Parameter | Default | Description |
+|---|---|---|
+| **`rsdb/snp_lifetime`** | **_2 days_** | Profile parameter controlling dump retention |
+| **`RSSNAPDL`** | ~~N/A~~ _(scheduled)_ | Reorganization report to **_clean up_** old dumps |
+
+> ⚠️ _If you don't increase the retention, dumps older than **2 days** are <ins>automatically deleted</ins>._
+
+---
+
+## 👤 Who Uses ST22?
+
+| Role | Purpose |
+|---|---|
+| **Basis Administrator** | Monitors _system health_, identifies **_recurring issues_** |
+| **ABAP Developer** | Debugs **_code-level failures_** and fixes programs |
+| **Functional Consultant** | Investigates ***user-reported errors*** |
+
+---
+
+## 💬 Common Interview Q&A
+
+### ❓ _How do you increase dump retention?_
+
+> - Schedule report **`RSSNAPDL`** with a _custom retention period_
+> - **_OR_** adjust the profile parameter **`rsdb/snp_lifetime`** _(value in seconds)_
+
+---
+
+### ❓ _How do you handle a **`TIME_OUT`** dump?_
+
+> 1. Check if **_program logic_** can be optimized _(first priority)_
+> 2. Run the program in **background mode** _(longer timeout: **3600s** vs 600s)_
+> 3. As a ***last resort***, increase `rdisp/max_wprun_time`
+>
+> ⚠️ _Increasing `rdisp/max_wprun_time` is <ins>not recommended</ins> as a permanent fix — it affects **all** dialog processes._
+
+---
+
+### ❓ _How do you handle **`TSV_TNEW_PAGE_ALLOC_FAILED`**?_
+
+> Check and tune these **_memory parameters_**:
+>
+> | Parameter | Controls |
+> |---|---|
+> | **`abap/heap_area_dia`** | Max heap per _dialog_ work process |
+> | **`abap/heap_area_nondia`** | Max heap per _non-dialog_ work process |
+> | **`em/initial_size_MB`** | ***Extended memory*** pool size |
+> | **`ztta/roll_area`** | _Roll area_ per work process |
+>
+> _Also, ask the **ABAP developer** to optimize the program's memory consumption._
+
+---
+
+### ❓ _How do you proactively monitor dumps?_
+
+> - ✅ Check **ST22** _daily_ as part of **_daily monitoring checklist_**
+> - ✅ Set up **CCMS alerts** via **`RZ20`** for _automatic notifications_
+> - ✅ Use ***Solution Manager*** for <ins>centralized monitoring</ins> across systems
+> - ✅ Create a **_custom Z-report_** to email dump summaries to the Basis team
+
+---
+
+### ❓ _How do you analyze a short dump step by step?_
+
+> 1. Open **ST22** → Select the dump by _date & time_
+> 2. Read the **_"What Happened"_** section for a summary
+> 3. Check the **_"How to Correct"_** section for SAP's recommendation
+> 4. Review the ***source code*** section to find the exact failing line
+> 5. Examine the **_call stack_** to understand the execution flow
+> 6. Note the **user**, **program**, and **timestamp** for further investigation
+
+---
+
+### ❓ _What is the difference between ST22 and SM21?_
+
+> | Feature | **ST22** | **SM21** |
+> |---|---|---|
+> | **Purpose** | _ABAP runtime errors_ (short dumps) | _System log_ (all system events) |
+> | **Scope** | Only **_program crashes_** | **Warnings**, errors, _login failures_, system messages |
+> | **Used By** | Basis + ***ABAP Developers*** | Primarily **_Basis Admins_** |
+> | **Detail Level** | <ins>Very detailed</ins> — code level | _High level_ — event log |
+
+---
+
+## ⚡ Quick One-Liner for Interview
+
+> ***"ST22 is my first stop when investigating any ABAP program crash — it tells me _what_ failed, _why_, _when_, and _for whom_."***
+
+---
+
+## 🔗 Related Transaction Codes
+
+| TCode | Description |
+|---|---|
+| **`SM21`** | _System Log_ |
+| **`SM50`** | _Work Process Overview_ |
+| **`SM66`** | _Global Work Process Overview_ |
+| **`SM37`** | _Background Job Monitoring_ |
+| **`RZ20`** | _CCMS Monitoring_ |
+| **`ST02`** | _Memory & Buffer Analysis_ |
+| **`SM13`** | _Update Request Administration_ |
+| **`SM12`** | _Lock Entry Management_ |
+
+---
+
+## 🧠 Pro Tips for Interview
+
+- 🔹 _Always mention that you check ST22 as part of your **daily monitoring routine**_
+- 🔹 _Know at least **3–4 dump types** and how to resolve them_
+- 🔹 _Emphasize the difference between **_fixing the root cause_** vs **_increasing parameters_** — interviewers love hearing that you prefer **optimization over quick fixes**_
+- 🔹 _If asked about a ***real-time scenario***, describe how you traced a user complaint back to a short dump using ST22, identified the program, and coordinated with the developer_
+
+---
+
+> 📁 **Part of:** [SAP Basis Interview Preparation Series](#)  
+> ✍️ _Feel free to **fork**, **star** ⭐, and **contribute**!_
